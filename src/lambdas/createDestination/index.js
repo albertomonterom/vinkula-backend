@@ -78,7 +78,7 @@ exports.handler = async (event) => {
         address: { S: address },
         latitude: { N: latitude.toString() },
         longitude: { N: longitude.toString() },
-        images: { L: imageUrls.map((url) => ({ S: url })) },
+        imageUrls: { L: imageUrls.map((url) => ({ S: url })) },
         createdAt: { S: new Date().toISOString() },
       },
     });

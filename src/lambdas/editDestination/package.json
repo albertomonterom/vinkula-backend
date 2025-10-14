@@ -1,0 +1,19 @@
+{
+  "name": "editdestination",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.910.0",
+    "aws-sdk": "^2.1692.0",
+    "client-s3": "github:aws-sdk/client-s3",
+    "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
