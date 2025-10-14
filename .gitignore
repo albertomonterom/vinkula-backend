@@ -1,0 +1,27 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# AWS packages / zipped files
+*.zip
+
+# Environment variables
+.env
+
+# Logs
+*.log
+logs/
+debug.log
+
+# macOS / Windows system files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
+
+# Build and cache
+dist/
+build/
+.cache/
