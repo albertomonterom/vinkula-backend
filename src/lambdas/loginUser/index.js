@@ -53,6 +53,8 @@ exports.handler = async (event) => {
     const token = jwt.sign(
       {
         idUser: user.idUser.S,
+        name: user.name.S,
+        lastName: user.lastName.S,
         email: user.email.S,
         role: user.role.S,
       },
@@ -65,13 +67,6 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         message: "Login successful",
         token,
-        user: {
-          idUser: user.idUser.S,
-          name: user.name.S,
-          lastName: user.lastName.S,
-          email: user.email.S,
-          role: user.role.S,
-        },
       }),
     };
   } catch (error) {
