@@ -2,29 +2,13 @@ require("dotenv").config();
 
 const { DynamoDBClient, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const jwt = require("jsonwebtoken");
 
 const client = new DynamoDBClient({ region: "us-east-2" });
 const s3 = new S3Client({ region: "us-east-2" });
-const SECRET_KEY = process.env.SECRET_KEY;
 const BUCKET_NAME = process.env.BUCKET_NAME;
 
 exports.handler = async (event) => {
   try {
-    // Verify JWT
-    const authHeader = event.headers.Authorization || event.headers.authorization;
-    if (!authHeader) {
-      return { statusCode: 401, body: JSON.stringify({ message: "Missing Authorization header" }) };
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, SECRET_KEY);
-
-    // Check provider role
-    if (decoded.role !== "user") {
-      return { statusCode: 403, body: JSON.stringify({ message: "Forbidden: only providers can edit destinations" }) };
-    }
-
     // Parse request body
     const body = JSON.parse(event.body);
     const { idDestination, name, description, address, latitude, longitude, imagesBase64 } = body;
@@ -33,7 +17,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ message: "Missing destination ID" }) };
     }
 
-    // Upload new images to S3
+    // Upload new images to S3 if provided
     let imageUrls = [];
     if (imagesBase64 && imagesBase64.length > 0) {
       for (let i = 0; i < imagesBase64.length; i++) {
@@ -62,10 +46,10 @@ exports.handler = async (event) => {
       }
     }
 
-    // Build DynamoDB update expression
+    // Build update expression
     const updateExpression = [];
     const expressionAttributeValues = {};
-    const expressionAttributeNames = { "#name": "name" }; // 'name' is reserved
+    const expressionAttributeNames = { "#name": "name" }; // 'name' is a reserved word
 
     if (name) {
       updateExpression.push("#name = :name");
@@ -96,7 +80,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ message: "No fields to update" }) };
     }
 
-    // Update in DynamoDB
+    // Update item in DynamoDB
     const command = new UpdateItemCommand({
       TableName: "vinkula-destinations",
       Key: { idDestination: { S: idDestination } },
@@ -107,7 +91,6 @@ exports.handler = async (event) => {
 
     await client.send(command);
 
-    // Success response
     return {
       statusCode: 200,
       body: JSON.stringify({
