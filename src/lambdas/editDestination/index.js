@@ -11,7 +11,7 @@ exports.handler = async (event) => {
   try {
     // Parse request body
     const body = JSON.parse(event.body);
-    const { idDestination, name, description, address, latitude, longitude, imagesBase64 } = body;
+    const { idDestination, name, description, address, latitude, longitude, imagesBase64, categories } = body;
 
     if (!idDestination) {
       return { statusCode: 400, body: JSON.stringify({ message: "Missing destination ID" }) };
@@ -49,25 +49,28 @@ exports.handler = async (event) => {
     // Build update expression
     const updateExpression = [];
     const expressionAttributeValues = {};
-    const expressionAttributeNames = { "#name": "name" }; // 'name' is a reserved word
+    const expressionAttributeNames = {};
+    if (name !== undefined) {
+      expressionAttributeNames["#name"] = "name"; // 'name' is a reserved word
+    }
 
-    if (name) {
+    if (name !== undefined) {
       updateExpression.push("#name = :name");
       expressionAttributeValues[":name"] = { S: name };
     }
-    if (description) {
+    if (description !== undefined) {
       updateExpression.push("description = :description");
       expressionAttributeValues[":description"] = { S: description };
     }
-    if (address) {
+    if (address !== undefined) {
       updateExpression.push("address = :address");
       expressionAttributeValues[":address"] = { S: address };
     }
-    if (latitude) {
+    if (latitude !== undefined) {
       updateExpression.push("latitude = :latitude");
       expressionAttributeValues[":latitude"] = { N: latitude.toString() };
     }
-    if (longitude) {
+    if (longitude !== undefined) {
       updateExpression.push("longitude = :longitude");
       expressionAttributeValues[":longitude"] = { N: longitude.toString() };
     }
@@ -75,19 +78,28 @@ exports.handler = async (event) => {
       updateExpression.push("imageUrls = :imageUrls");
       expressionAttributeValues[":imageUrls"] = { L: imageUrls.map((url) => ({ S: url })) };
     }
+    if (categories !== undefined) {
+      updateExpression.push("categories = :categories");
+      expressionAttributeValues[":categories"] = { L: categories.map((c) => ({ S: c })) };
+    }
 
     if (updateExpression.length === 0) {
       return { statusCode: 400, body: JSON.stringify({ message: "No fields to update" }) };
     }
 
     // Update item in DynamoDB
-    const command = new UpdateItemCommand({
+    const commandParams = {
       TableName: "vinkula-destinations",
       Key: { idDestination: { S: idDestination } },
       UpdateExpression: `SET ${updateExpression.join(", ")}`,
       ExpressionAttributeValues: expressionAttributeValues,
-      ExpressionAttributeNames: expressionAttributeNames,
-    });
+    };
+
+    if (Object.keys(expressionAttributeNames).length > 0) {
+      commandParams.ExpressionAttributeNames = expressionAttributeNames;
+    }
+
+    const command = new UpdateItemCommand(commandParams);
 
     await client.send(command);
 

@@ -10,7 +10,7 @@ exports.handler = async (event) => {
   try {
     // Parse request body
     const body = JSON.parse(event.body);
-    const { idProvider, name, description, address, latitude, longitude, imagesBase64 } = body;
+    const { idProvider, name, description, address, latitude, longitude, imagesBase64, categories } = body;
 
     // Validate required fields
     if (
@@ -20,7 +20,8 @@ exports.handler = async (event) => {
       !address ||
       !latitude ||
       !longitude ||
-      !imagesBase64?.length
+      !imagesBase64?.length ||
+      !categories?.length
     ) {
       return {
         statusCode: 400,
@@ -68,6 +69,7 @@ exports.handler = async (event) => {
         latitude: { N: latitude.toString() },
         longitude: { N: longitude.toString() },
         imageUrls: { L: imageUrls.map((url) => ({ S: url })) },
+        categories: { L: categories.map((cat) => ({ S: cat })) },
         createdAt: { S: new Date().toISOString() },
       },
     });
@@ -80,6 +82,7 @@ exports.handler = async (event) => {
         message: "Destination created successfully",
         idDestination,
         imageUrls,
+        categories,
       }),
     };
   } catch (error) {
