@@ -93,6 +93,7 @@ exports.handler = async (event) => {
       Key: { idDestination: { S: idDestination } },
       UpdateExpression: `SET ${updateExpression.join(", ")}`,
       ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: "UPDATED_NEW",
     };
 
     if (Object.keys(expressionAttributeNames).length > 0) {
@@ -101,7 +102,7 @@ exports.handler = async (event) => {
 
     const command = new UpdateItemCommand(commandParams);
 
-    await client.send(command);
+    const response = await client.send(command);
 
     return {
       statusCode: 200,
@@ -109,6 +110,7 @@ exports.handler = async (event) => {
         message: "Destination updated successfully",
         idDestination,
         updatedFields: Object.keys(expressionAttributeValues),
+        newValues: response.Attributes || {},
       }),
     };
   } catch (error) {
